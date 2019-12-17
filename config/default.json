@@ -1,3 +1,3 @@
 {
-  "mongoURI": "mongodb+srv://farukh:<password>@contactkeeper-jpero.mongodb.net/test?retryWrites=true&w=majority"
+  "mongoURI": "mongodb+srv://finix:farook1234@contactkeeper-jpero.mongodb.net/test?retryWrites=true&w=majority"
 }
