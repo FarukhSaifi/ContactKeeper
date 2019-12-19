@@ -40,6 +40,7 @@ routes.post(
       user.password = await bcrypt.hash(password, salt);
       await user.save();
 
+      // Send payload by token
       const payload = {
         user: {
           id: user.id
