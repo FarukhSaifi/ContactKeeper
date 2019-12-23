@@ -4,7 +4,8 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { Container } from "@material-ui/core";
 import Home from "./Components/Pages/Home";
 import About from "./Components/Pages/About";
-import ContactState from "./Components/Context/ContactState";
+import ContactState from "./Components/context/ContactState";
+import Contacts from "./Components/Contacts/Contacts";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <Router>
         <Fragment>
           <Navbar />
+          <Contacts />
           <Container>
             <Switch>
               <Route exact path="/" component={Home} />
