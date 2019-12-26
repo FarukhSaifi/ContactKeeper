@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Button,
   TextField,
@@ -34,6 +34,7 @@ const useStyles = makeStyles(theme => ({
 
 const ContactForm = () => {
   const context = useContext(contactContext);
+  const { addContact, clearCurrent, updateContact, current } = context;
   // Form State
   const [contact, setContact] = useState({
     name: "",
@@ -42,6 +43,19 @@ const ContactForm = () => {
     type: "Mobile"
   });
 
+  useEffect(() => {
+    if (current !== null) {
+      setContact(current);
+    } else {
+      setContact({
+        name: "",
+        email: "",
+        phone: "",
+        type: "Mobile"
+      });
+    }
+  }, [context, current]);
+
   // OnChange Function Add Data Into Form State
   const onChange = e =>
     setContact({
@@ -49,16 +63,19 @@ const ContactForm = () => {
       [e.target.name]: e.target.value
     });
 
+  const clearAll = e => {
+    clearCurrent();
+  };
+
   // On Submit Function Add data Into contactContext
   const onSubmit = e => {
     e.preventDefault();
-    context.addContact(contact);
-    setContact({
-      name: "",
-      email: "",
-      phone: "",
-      type: "Mobile"
-    });
+    if (current === null) {
+      addContact(contact);
+    } else {
+      updateContact(contact);
+    }
+    clearAll();
   };
 
   const classes = useStyles();
@@ -66,7 +83,7 @@ const ContactForm = () => {
   return (
     <Container className={classes.paper} component="main" maxWidth="xs">
       <Typography component="h1" variant="h5">
-        Add Contact
+        {current ? "Edit Contact" : "Add Contact"}
       </Typography>
       <form className={classes.form} noValidate onSubmit={onSubmit}>
         <TextField
@@ -80,6 +97,7 @@ const ContactForm = () => {
           type="text"
           id="name"
           autoComplete="current-password"
+          autoFocus
           onChange={onChange}
         />
         <TextField
@@ -92,7 +110,6 @@ const ContactForm = () => {
           name="email"
           value={email}
           autoComplete="email"
-          autoFocus
           onChange={onChange}
         />
         <TextField
@@ -134,8 +151,20 @@ const ContactForm = () => {
           color="primary"
           className={classes.submit}
         >
-          Add Contact
+          {current ? "Edit Contact" : "Add Contact"}
         </Button>
+
+        {current ? (
+          <Button
+            fullWidth
+            variant="contained"
+            color="secondary"
+            className={classes.submit}
+            onClick={clearAll}
+          >
+            Cancel
+          </Button>
+        ) : null}
       </form>
     </Container>
   );
