@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   makeStyles,
   ListItemText,
@@ -10,6 +10,7 @@ import {
 } from "@material-ui/core";
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
+import contactContext from "../context/contactContext";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -27,9 +28,19 @@ const useStyles = makeStyles(theme => ({
     paddingLeft: theme.spacing(3)
   }
 }));
+
 const ContactItem = ({ SingleContact }) => {
   const { id, name, email, phone } = SingleContact;
+  const context = useContext(contactContext);
+  const { deleteContact, setCurrent, clearCurrent } = context;
+
   const classes = useStyles();
+
+  const onDelete = () => {
+    deleteContact(id);
+    clearCurrent();
+  };
+
   return (
     <Grid>
       <ListItem button className={classes.root}>
@@ -52,10 +63,19 @@ const ContactItem = ({ SingleContact }) => {
             </React.Fragment>
           }
         />
-        <IconButton xs={4} aria-label="edit">
+        <IconButton
+          xs={4}
+          aria-label="edit"
+          onClick={() => setCurrent(SingleContact)}
+        >
           <EditIcon />
         </IconButton>
-        <IconButton xs={4} aria-label="delete" className={classes.DeleteIcon}>
+        <IconButton
+          xs={4}
+          aria-label="delete"
+          className={classes.DeleteIcon}
+          onClick={onDelete}
+        >
           <DeleteIcon />
         </IconButton>
       </ListItem>
