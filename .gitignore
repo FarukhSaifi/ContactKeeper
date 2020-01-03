@@ -8,3 +8,5 @@ client/.env.production.local
 
 npm-debug.log*
 debug.log*
+
+.vscode*

@@ -151,7 +151,7 @@ const ContactForm = () => {
           color="primary"
           className={classes.submit}
         >
-          {current ? "Edit Contact" : "Add Contact"}
+          {current ? "Update" : "Add Contact"}
         </Button>
 
         {current ? (
