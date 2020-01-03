@@ -42,7 +42,7 @@ const ContactItem = ({ SingleContact }) => {
   };
 
   return (
-    <Grid>
+    <Grid className="animated fadeInLeft">
       <ListItem button className={classes.root}>
         <Avatar>F</Avatar>
         <ListItemText

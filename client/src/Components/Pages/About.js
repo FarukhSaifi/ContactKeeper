@@ -13,7 +13,7 @@ export const About = () => {
   return (
     <div>
       <Paper className={classes.root} elevation={0}>
-        <Typography variant="headline" component="h1">
+        <Typography variant="h1" component="h2">
           About
         </Typography>
       </Paper>

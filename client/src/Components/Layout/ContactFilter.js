@@ -27,7 +27,10 @@ const ContactFilter = () => {
 
   const classes = useStyle();
   return (
-    <form onSubmit={onSubmit} className={classes.FormMargin}>
+    <form
+      onSubmit={onSubmit}
+      className={`${classes.FormMargin} animated fadeInDown`}
+    >
       <TextField
         ref={text}
         label="Search Contact"

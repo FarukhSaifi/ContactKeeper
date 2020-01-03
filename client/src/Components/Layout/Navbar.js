@@ -39,11 +39,18 @@ const Navbar = ({ Name }) => {
           <Typography variant="h6" className={classes.title}>
             {Name}
           </Typography>
-          <Button color="inherit">Home</Button>
+          <Button color="inherit">
+            <Link to="/">Home</Link>
+          </Button>
           <Button color="inherit">
             <Link to="/About">About</Link>
           </Button>
-          <Button color="inherit">Login</Button>
+          <Button color="inherit">
+            <Link to="/Login">Login</Link>
+          </Button>
+          <Button color="inherit">
+            <Link to="/Register">Register</Link>
+          </Button>
         </Toolbar>
       </AppBar>
     </div>

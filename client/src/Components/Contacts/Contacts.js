@@ -1,6 +1,5 @@
 import React, { Fragment, useContext } from "react";
 import { List, Divider } from "@material-ui/core";
-
 import ContactContext from "../context/contactContext";
 import ContactItem from "./ContactItem";
 
@@ -30,7 +29,6 @@ const Contacts = () => {
                   key={SingleContact.id}
                   SingleContact={SingleContact}
                 />
-
                 <Divider />
               </Fragment>
             ))}
