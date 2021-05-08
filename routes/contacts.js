@@ -11,7 +11,7 @@ const Contact = require("../modals/Contacts");
 routes.get("/", auth, async (req, res) => {
   try {
     const contacts = await Contact.find({ user: req.user.id }).sort({
-      date: -1
+      date: -1,
     });
     res.json(contacts);
   } catch (err) {
@@ -20,19 +20,12 @@ routes.get("/", auth, async (req, res) => {
   }
 });
 
-//@routes   POST api/contact
+//@routes   POST api/contacts
 //@desc     Create Contact
 //@access   private
 routes.post(
   "/",
-  [
-    auth,
-    [
-      check("name", "Name is Required")
-        .not()
-        .isEmail()
-    ]
-  ],
+  [auth, [check("name", "Name is Required").not().isEmail()]],
   async (req, res) => {
     const error = validationResult(req);
     if (!error.isEmpty()) {
@@ -47,7 +40,7 @@ routes.post(
         name,
         email,
         phone,
-        type
+        type,
       });
 
       const contact = await newContact.save();
