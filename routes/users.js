@@ -13,15 +13,13 @@ routes.post(
   "/",
   [
     // name is not Empty
-    check("name", "Name Is Reqiured")
-      .not()
-      .isEmpty(),
+    check("name", "Name Is Reqiured").not().isEmpty(),
     // Email must be an email
     check("email", "E-mail is reqiured").isEmail(),
     // password must be at least 6 chars long
     check("password", "Enter the Password 6 And more characters").isLength({
-      min: 6
-    })
+      min: 6,
+    }),
   ],
 
   async (req, res) => {
@@ -43,8 +41,8 @@ routes.post(
       // Send payload by token
       const payload = {
         user: {
-          id: user.id
-        }
+          id: user.id,
+        },
       };
       // JWT
       jwt.sign(

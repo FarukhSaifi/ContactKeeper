@@ -7,6 +7,7 @@ const auth = require("../middleware/auth");
 const { check, validationResult } = require("express-validator");
 
 const User = require("../modals/User");
+
 //@routes   GET api/auth
 //@desc     get Logged in user
 //@access   private
@@ -17,7 +18,7 @@ routes.get("/", auth, async (req, res) => {
   } catch (err) {
     console.error(err);
 
-    res.status(500).send("Server Error...");
+    res.status(500).send("Server Error...⚠️");
   }
 });
 
@@ -28,7 +29,7 @@ routes.post(
   "/",
   [
     check("email", "Invaild User").isEmail(),
-    check("password", "Invaild passwords").exists()
+    check("password", "Invaild passwords").exists(),
   ],
   async (req, res) => {
     const error = validationResult(req);
@@ -53,8 +54,8 @@ routes.post(
       // Send payload by token
       const payload = {
         user: {
-          id: user.id
-        }
+          id: user.id,
+        },
       };
       // JWT
       jwt.sign(
