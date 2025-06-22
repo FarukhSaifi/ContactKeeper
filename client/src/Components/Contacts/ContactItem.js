@@ -1,32 +1,32 @@
-import React, { useContext } from "react";
 import {
-  makeStyles,
-  ListItemText,
-  ListItem,
   Avatar,
-  Typography,
+  Grid,
   IconButton,
-  Grid
+  ListItem,
+  ListItemText,
+  makeStyles,
+  Typography,
 } from "@material-ui/core";
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
+import React, { useContext } from "react";
 import contactContext from "../context/contactContext";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
     display: "flex",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   inline: {
-    display: "inline-block"
+    display: "inline-block",
   },
   DeleteIcon: {
-    color: "red"
+    color: "red",
   },
   paddinleft2: {
-    paddingLeft: theme.spacing(3)
-  }
+    paddingLeft: theme.spacing(3),
+  },
 }));
 
 const ContactItem = ({ SingleContact }) => {
@@ -44,7 +44,7 @@ const ContactItem = ({ SingleContact }) => {
   return (
     <Grid className="animated fadeInLeft">
       <ListItem button className={classes.root}>
-        <Avatar>F</Avatar>
+        <Avatar>{name ? name.charAt(0).toUpperCase() : "?"}</Avatar>
         <ListItemText
           className={classes.paddinleft2}
           inset
@@ -63,15 +63,10 @@ const ContactItem = ({ SingleContact }) => {
             </React.Fragment>
           }
         />
-        <IconButton
-          xs={4}
-          aria-label="edit"
-          onClick={() => setCurrent(SingleContact)}
-        >
+        <IconButton aria-label="edit" onClick={() => setCurrent(SingleContact)}>
           <EditIcon />
         </IconButton>
         <IconButton
-          xs={4}
           aria-label="delete"
           className={classes.DeleteIcon}
           onClick={onDelete}
