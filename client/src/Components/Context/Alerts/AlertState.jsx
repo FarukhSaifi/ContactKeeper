@@ -1,10 +1,10 @@
 import React, { useReducer } from "react";
+import { v4 as uuid } from "uuid";
+import { REMOVE_ALERT, SET_ALERT } from "../types";
 import AlertContext from "./AlertContext";
 import AlertReducer from "./AlertReducer";
-import uuid from "uuid";
-import { SET_ALERT, REMOVE_ALERT } from "../types";
 
-const AlertState = props => {
+const AlertState = (props) => {
   const initialState = [];
 
   const [state, dispatch] = useReducer(AlertReducer, initialState);
@@ -25,7 +25,7 @@ const AlertState = props => {
     <AlertContext.Provider
       value={{
         alerts: state,
-        setAlert
+        setAlert,
       }}
     >
       {props.children}
