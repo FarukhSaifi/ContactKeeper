@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js",
-    "client": "npm start --prefix client",
+    "client": "npm run dev --prefix client",
     "clientinstall": "npm install --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\""
   },
@@ -16,6 +16,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "config": "^4.0.0",
+    "dotenv": "^16.4.5",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
@@ -25,5 +26,5 @@
     "concurrently": "^9.2.0",
     "nodemon": "^3.1.10"
   },
-  "proxy": "http://localhost:5000"
+  "proxy": "http://localhost:5001"
 }
