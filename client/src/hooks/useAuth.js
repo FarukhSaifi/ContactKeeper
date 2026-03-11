@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../Components/Context/auth/AuthContext";
+import { ROUTES } from "../constants/app";
 
-// Custom hook for authentication
 export const useAuth = () => {
   const context = useContext(AuthContext);
   const navigate = useNavigate();
@@ -11,21 +11,9 @@ export const useAuth = () => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
 
-  const {
-    user,
-    token,
-    isAuthenticated,
-    loading,
-    error,
-    login,
-    register,
-    logout,
-    clearErrors,
-    loadUser,
-  } = context;
+  const { user, token, isAuthenticated, loading, error, login, register, logout, clearErrors, loadUser } = context;
 
-  // Redirect to login if not authenticated
-  const requireAuth = (redirectTo = "/login") => {
+  const requireAuth = (redirectTo = ROUTES.LOGIN) => {
     if (!isAuthenticated && !loading) {
       navigate(redirectTo);
       return false;
@@ -33,8 +21,7 @@ export const useAuth = () => {
     return true;
   };
 
-  // Redirect to home if already authenticated
-  const redirectIfAuthenticated = (redirectTo = "/") => {
+  const redirectIfAuthenticated = (redirectTo = ROUTES.HOME) => {
     if (isAuthenticated && !loading) {
       navigate(redirectTo);
       return true;

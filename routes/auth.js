@@ -1,77 +1,69 @@
+/**
+ * Auth routes: get current user (protected) and login (public).
+ * Uses JWT and bcrypt; tokens are set in constants (JWT.EXPIRES_IN).
+ */
 const express = require("express");
-routes = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
+const { check } = require("express-validator");
+
+const router = express.Router();
 const auth = require("../middleware/auth");
-const { check, validationResult } = require("express-validator");
-
 const User = require("../modals/User");
+const { HTTP_STATUS, MESSAGES, JWT } = require("../config/constants");
+const { handleValidationErrors, sendServerError } = require("../utils/routeHelpers");
 
-//@routes   GET api/auth
-//@desc     get Logged in user
-//@access   private
-routes.get("/", auth, async (req, res) => {
+// Validation rules for POST / (login)
+const loginValidation = [
+  check("email", "Valid email is required").isEmail().normalizeEmail(),
+  check("password", "Password is required").not().isEmpty(),
+];
+
+/** Promisified JWT sign; payload should include { user: { id } }. */
+function signToken(payload) {
+  return new Promise((resolve, reject) => {
+    jwt.sign(payload, config.get("jwtSecret"), { expiresIn: JWT.EXPIRES_IN }, (err, token) =>
+      err ? reject(err) : resolve(token),
+    );
+  });
+}
+
+// GET /api/auth – return current user (no password); requires auth middleware
+router.get("/", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password").lean();
+    if (!user) {
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({ msg: MESSAGES.INVALID_CREDENTIALS });
+    }
     res.json(user);
   } catch (err) {
-    console.error(err);
-
-    res.status(500).send("Server Error...⚠️");
+    sendServerError(res, err, "auth");
   }
 });
 
-//@routes   POST api/auth
-//@desc     Auth User & Get Token
-//@access   private
-routes.post(
-  "/",
-  [
-    check("email", "Invaild User").isEmail(),
-    check("password", "Invaild passwords").exists(),
-  ],
-  async (req, res) => {
-    const error = validationResult(req);
-    if (!error.isEmpty()) {
-      return res.status(400).json({ error: error.array() });
+// POST /api/auth – login with email/password; returns { token }
+router.post("/", loginValidation, async (req, res) => {
+  if (handleValidationErrors(req, res)) return;
+
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ msg: MESSAGES.INVALID_CREDENTIALS });
     }
 
-    const { email, password } = req.body;
-
-    try {
-      let user = await User.findOne({ email });
-
-      if (!user) {
-        return res.status(400).json({ msg: "Invaild User" });
-      }
-      const isMatch = await bcrypt.compare(password, user.password);
-
-      if (!isMatch) {
-        return res.status(400).json({ msg: "Invaild Password" });
-      }
-
-      // Send payload by token
-      const payload = {
-        user: {
-          id: user.id,
-        },
-      };
-      // JWT
-      jwt.sign(
-        payload,
-        config.get("jwtSecret"),
-        { expiresIn: 360000 },
-        (err, token) => {
-          if (err) throw err;
-          res.json({ token });
-        }
-      );
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Server Error...");
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ msg: MESSAGES.INVALID_PASSWORD });
     }
+
+    const token = await signToken({ user: { id: user.id } });
+    res.json({ token });
+  } catch (err) {
+    sendServerError(res, err, "auth");
   }
-);
+});
 
-module.exports = routes;
+module.exports = router;

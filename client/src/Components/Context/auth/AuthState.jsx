@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useReducer } from "react";
-import api from "../../../services/api";
+import { ERROR_MESSAGES } from "../../../constants/app";
+import authService from "../../../services/api/auth";
+import { tokenManager } from "../../../utils/storage";
 import {
   AUTH_ERROR,
   CLEAR_ERRORS,
@@ -14,78 +16,60 @@ import AuthContext from "./AuthContext";
 import AuthReducer from "./AuthReducer";
 
 const AuthState = (props) => {
-  const token = localStorage.getItem("token");
+  const token = tokenManager.get();
   const initialState = {
-    token: token,
+    token: token ?? null,
     isAuthenticated: false,
-    loading: !!token, // Only show loading if there's a token to verify
+    loading: !!token,
     user: null,
     error: null,
   };
 
   const [state, dispatch] = useReducer(AuthReducer, initialState);
 
-  // Load user
   const loadUser = useCallback(async () => {
-    if (localStorage.token) {
+    if (tokenManager.get()) {
       try {
-        const res = await api.get("/auth");
-        dispatch({
-          type: USER_LOADED,
-          payload: res.data,
-        });
-      } catch (err) {
+        const user = await authService.getCurrentUser();
+        dispatch({ type: USER_LOADED, payload: user });
+      } catch {
         dispatch({ type: AUTH_ERROR });
       }
     } else {
-      // No token, set as not authenticated
-      dispatch({
-        type: USER_LOADED,
-        payload: null,
-      });
+      dispatch({ type: USER_LOADED, payload: null });
     }
   }, []);
 
-  // Register user
   const register = async (formData) => {
     try {
-      const res = await api.post("/users", formData);
-      dispatch({
-        type: REGISTER_SUCCESS,
-        payload: res.data,
-      });
+      const data = await authService.register(formData);
+      dispatch({ type: REGISTER_SUCCESS, payload: data });
       loadUser();
     } catch (err) {
       dispatch({
         type: REGISTER_FAIL,
-        payload: err.response?.data?.msg || "Registration failed",
+        payload: err.response?.data?.msg || err.message || ERROR_MESSAGES.REGISTRATION_FAILED,
       });
     }
   };
 
-  // Login user
   const login = async (formData) => {
     try {
-      const res = await api.post("/auth", formData);
-      dispatch({
-        type: LOGIN_SUCCESS,
-        payload: res.data,
-      });
+      const data = await authService.login(formData);
+      dispatch({ type: LOGIN_SUCCESS, payload: data });
       loadUser();
     } catch (err) {
       dispatch({
         type: LOGIN_FAIL,
-        payload: err.response?.data?.msg || "Login failed",
+        payload: err.response?.data?.msg || err.message || ERROR_MESSAGES.LOGIN_FAILED,
       });
     }
   };
 
-  // Logout
   const logout = () => {
     dispatch({ type: LOGOUT });
   };
 
-  // Clear errors
   const clearErrors = () => {
     dispatch({ type: CLEAR_ERRORS });
   };
@@ -94,11 +78,7 @@ const AuthState = (props) => {
     if (token) {
       loadUser();
     } else {
-      // No token, set loading to false immediately
-      dispatch({
-        type: USER_LOADED,
-        payload: null,
-      });
+      dispatch({ type: USER_LOADED, payload: null });
     }
   }, [loadUser, token]);
 

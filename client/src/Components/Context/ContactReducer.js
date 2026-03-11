@@ -4,7 +4,7 @@ import {
   CLEAR_FILTER,
   CONTACT_ERROR,
   DELETE_CONTACT,
-  FLITER_CONTACT,
+  FILTER_CONTACT,
   GET_CONTACTS,
   SET_CURRENT,
   UPDATE_CONTACT,
@@ -27,9 +27,7 @@ const contactReducer = (state, action) => {
     case UPDATE_CONTACT:
       return {
         ...state,
-        contacts: state.contacts.map((contact) =>
-          contact._id === action.payload._id ? action.payload : contact
-        ),
+        contacts: state.contacts.map((contact) => (contact._id === action.payload._id ? action.payload : contact)),
         loading: false,
       };
     case DELETE_CONTACT:
@@ -48,7 +46,7 @@ const contactReducer = (state, action) => {
         ...state,
         current: null,
       };
-    case FLITER_CONTACT:
+    case FILTER_CONTACT:
       return {
         ...state,
         filtered: state.contacts.filter((contact) => {

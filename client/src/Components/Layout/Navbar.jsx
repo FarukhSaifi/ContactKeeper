@@ -3,6 +3,7 @@ import { AppBar, Button, IconButton, Toolbar, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
 import { Link } from "react-router-dom";
+import { ROUTES } from "../../constants/app";
 import ThemeToggle from "./ThemeToggle";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
@@ -27,16 +28,16 @@ const Navbar = ({ Name = "Contact Keeper" }) => {
           </StyledIconButton>
           <StyledTypography variant="h6">{Name}</StyledTypography>
           <Button color="inherit">
-            <Link to="/">Home</Link>
+            <Link to={ROUTES.HOME}>Home</Link>
           </Button>
           <Button color="inherit">
-            <Link to="/About">About</Link>
+            <Link to={ROUTES.ABOUT}>About</Link>
           </Button>
           <Button color="inherit">
-            <Link to="/Login">Login</Link>
+            <Link to={ROUTES.LOGIN}>Login</Link>
           </Button>
           <Button color="inherit">
-            <Link to="/Register">Register</Link>
+            <Link to={ROUTES.REGISTER}>Register</Link>
           </Button>
           <ThemeToggle />
         </Toolbar>

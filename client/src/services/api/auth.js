@@ -1,32 +1,35 @@
+/**
+ * Auth API service: login, register, get current user, logout.
+ * Uses shared api instance (base.js) which handles token attachment and 401.
+ */
 import { API_ENDPOINTS } from "../../constants/api";
+import { ROUTES } from "../../constants/app";
+import { tokenManager } from "../../utils/storage";
 import api from "./base";
 
-// Auth API service
-export const authService = {
-  // Login user
+const authService = {
+  /** POST /auth – returns { token } */
   login: async (credentials) => {
     const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
     return response.data;
   },
 
-  // Register user
+  /** POST /users – returns { token } */
   register: async (userData) => {
     const response = await api.post(API_ENDPOINTS.AUTH.REGISTER, userData);
     return response.data;
   },
 
-  // Get current user
+  /** GET /auth – returns user object (no password) */
   getCurrentUser: async () => {
     const response = await api.get(API_ENDPOINTS.AUTH.GET_USER);
     return response.data;
   },
 
-  // Logout (client-side only)
+  /** Clear token and redirect to login (client-side only) */
   logout: () => {
-    // Clear token from storage
-    localStorage.removeItem("token");
-    // Redirect to login
-    window.location.href = "/login";
+    tokenManager.remove();
+    window.location.href = ROUTES.LOGIN;
   },
 };
 

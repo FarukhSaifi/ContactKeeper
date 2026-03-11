@@ -1,22 +1,31 @@
+/**
+ * Local storage helpers and token/theme/preferences managers.
+ * storage.get supports both JSON-stored and raw string values for backward compatibility.
+ */
 import { STORAGE_KEYS } from "../constants/app";
 
-// Local Storage utility functions
 export const storage = {
-  // Get item from localStorage
+  /** Get value by key; parses JSON when possible, otherwise returns raw string */
   get: (key) => {
     try {
       const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : null;
+      if (item == null) return null;
+      try {
+        return JSON.parse(item);
+      } catch {
+        return item;
+      }
     } catch (error) {
       console.error(`Error getting item from localStorage: ${error.message}`);
       return null;
     }
   },
 
-  // Set item in localStorage
+  /** Store value; strings stored as-is, other types JSON.stringify'd */
   set: (key, value) => {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      const toStore = typeof value === "string" ? value : JSON.stringify(value);
+      localStorage.setItem(key, toStore);
       return true;
     } catch (error) {
       console.error(`Error setting item in localStorage: ${error.message}`);
@@ -35,7 +44,7 @@ export const storage = {
     }
   },
 
-  // Clear all localStorage
+  /** Clear entire localStorage */
   clear: () => {
     try {
       localStorage.clear();
@@ -47,11 +56,12 @@ export const storage = {
   },
 };
 
-// Token management
+/** JWT token: get/set/remove via STORAGE_KEYS.TOKEN; isValid checks exp from payload */
 export const tokenManager = {
   get: () => storage.get(STORAGE_KEYS.TOKEN),
   set: (token) => storage.set(STORAGE_KEYS.TOKEN, token),
   remove: () => storage.remove(STORAGE_KEYS.TOKEN),
+  /** True if token exists and JWT exp (seconds) is in the future */
   isValid: (token) => {
     if (!token) return false;
     try {
@@ -63,14 +73,12 @@ export const tokenManager = {
   },
 };
 
-// Theme management
 export const themeManager = {
   get: () => storage.get(STORAGE_KEYS.THEME) || "light",
   set: (theme) => storage.set(STORAGE_KEYS.THEME, theme),
   remove: () => storage.remove(STORAGE_KEYS.THEME),
 };
 
-// User preferences management
 export const preferencesManager = {
   get: () => storage.get(STORAGE_KEYS.USER_PREFERENCES) || {},
   set: (preferences) => storage.set(STORAGE_KEYS.USER_PREFERENCES, preferences),
