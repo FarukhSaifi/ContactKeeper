@@ -14,10 +14,13 @@ const ContactFilter = () => {
 
   const onChange = (e) => {
     e.preventDefault();
-    if (text.current.value === "") {
-      filterContacts(e.target.value);
-    } else {
+    const value = e.target.value;
+    text.current.value = value;
+    
+    if (value === "") {
       clearFilter();
+    } else {
+      filterContacts(value);
     }
   };
 

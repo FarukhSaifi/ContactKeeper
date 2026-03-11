@@ -4,7 +4,7 @@ import ContactForm from "../../components/forms/ContactForm";
 import { useApi } from "../../hooks/useApi";
 import { useContacts } from "../../hooks/useContacts";
 
-const ContactFormWrapper = () => {
+const ContactFormWrapper = ({ onCancel: externalOnCancel }) => {
   const { current, addContact, updateContact, clearCurrent } = useContacts();
   const { execute, loading, error } = useApi();
 
@@ -17,6 +17,7 @@ const ContactFormWrapper = () => {
           (result) => {
             console.log("Contact updated successfully:", result);
             clearCurrent();
+            if (externalOnCancel) externalOnCancel();
           }
         );
       } else {
@@ -25,6 +26,7 @@ const ContactFormWrapper = () => {
           () => addContact(formData),
           (result) => {
             console.log("Contact added successfully:", result);
+            if (externalOnCancel) externalOnCancel();
           }
         );
       }
@@ -35,6 +37,7 @@ const ContactFormWrapper = () => {
 
   const handleCancel = () => {
     clearCurrent();
+    if (externalOnCancel) externalOnCancel();
   };
 
   return (
@@ -52,7 +55,7 @@ const ContactFormWrapper = () => {
         loading={loading}
         error={error}
         submitText={current ? "Update Contact" : "Add Contact"}
-        showCancel={!!current}
+        showCancel={!!current || !!externalOnCancel}
         onCancel={handleCancel}
       />
     </Box>

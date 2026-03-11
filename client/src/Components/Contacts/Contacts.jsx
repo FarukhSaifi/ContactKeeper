@@ -1,12 +1,21 @@
-import { Divider, List } from "@mui/material";
+import { Divider, List, useMediaQuery, useTheme } from "@mui/material";
 import React, { Fragment, useContext } from "react";
 import ContactContext from "../Context/contactContext";
 import ContactItem from "./ContactItem";
+import MobileContactList from "../../components/contacts/MobileContactList";
 
 const Contacts = () => {
   const contactContext = useContext(ContactContext);
   const { contacts, filtered } = contactContext;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  // Use mobile component on mobile devices
+  if (isMobile) {
+    return <MobileContactList contacts={contacts} filtered={filtered} />;
+  }
+
+  // Desktop version
   if (!contacts || contacts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -40,7 +49,7 @@ const Contacts = () => {
       <List component="div" className="space-y-2">
         {filtered !== null
           ? filtered.map((SingleContact) => (
-              <Fragment key={SingleContact.id}>
+              <Fragment key={SingleContact._id || SingleContact.id}>
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-600">
                   <ContactItem SingleContact={SingleContact} />
                 </div>
@@ -48,7 +57,7 @@ const Contacts = () => {
               </Fragment>
             ))
           : contacts.map((SingleContact) => (
-              <Fragment key={SingleContact.id}>
+              <Fragment key={SingleContact._id || SingleContact.id}>
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-600">
                   <ContactItem SingleContact={SingleContact} />
                 </div>
@@ -59,4 +68,5 @@ const Contacts = () => {
     </div>
   );
 };
+
 export default Contacts;

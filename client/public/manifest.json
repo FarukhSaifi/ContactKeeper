@@ -1,6 +1,7 @@
 {
-  "short_name": "Contact Keeper",
-  "name": "ContactKeeper Material",
+  "short_name": "ContactKeeper",
+  "name": "ContactKeeper - Manage Your Contacts",
+  "description": "A modern contact management application with offline support",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,16 +11,32 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "portrait-primary",
+  "theme_color": "#2196f3",
+  "background_color": "#ffffff",
+  "categories": ["productivity", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Add Contact",
+      "short_name": "Add",
+      "description": "Quickly add a new contact",
+      "url": "/?action=add",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
 }
