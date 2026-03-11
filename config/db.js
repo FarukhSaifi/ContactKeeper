@@ -1,26 +1,37 @@
+/**
+ * MongoDB connection setup.
+ * Loads URI from env (MONGO_URI) or config, then connects; does not throw on failure.
+ */
 const mongoose = require("mongoose");
 const config = require("config");
+const { DEFAULT_MONGO_URI } = require("./constants");
 
-const getMongoUri = () => {
-  if (process.env.MONGO_URI && process.env.MONGO_URI.trim().length > 0) {
-    return process.env.MONGO_URI;
-  }
+/**
+ * Resolves MongoDB connection URI: env first, then config, then default.
+ * @returns {string} Connection URI
+ */
+function getMongoUri() {
+  const envUri = process.env.MONGO_URI?.trim();
+  if (envUri) return envUri;
   try {
     return config.get("mongoURI");
-  } catch (err) {
-    return "mongodb://localhost:27017/contactkeeper";
+  } catch {
+    return DEFAULT_MONGO_URI;
   }
-};
+}
 
-const connectDB = async () => {
-  const mongoUri = getMongoUri();
+/**
+ * Connects to MongoDB using getMongoUri().
+ * Logs success or failure; does not throw so the app can start without DB.
+ */
+async function connectDB() {
+  const uri = getMongoUri();
   try {
-    await mongoose.connect(mongoUri);
-    console.log("MongoDB Connected...👍🏼");
+    await mongoose.connect(uri);
+    console.log("[db] MongoDB connected");
   } catch (err) {
-    console.error("MongoDB connection failed:", err.message);
-    console.log("App will continue without database connection...");
+    console.error("[db] Connection failed:", err.message);
   }
-};
+}
 
 module.exports = connectDB;

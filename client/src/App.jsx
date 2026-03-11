@@ -16,10 +16,8 @@ import Login from "./Components/Pages/Login";
 import Register from "./Components/Pages/Register";
 
 // Auth Components
-import ProtectedRoute from "./components/auth/ProtectedRoute";
-
-// Error Boundary
-import ErrorBoundary from "./components/ui/ErrorBoundary";
+import ProtectedRoute from "./Components/auth/ProtectedRoute";
+import ErrorBoundary from "./Components/ui/ErrorBoundary";
 
 function App() {
   return (

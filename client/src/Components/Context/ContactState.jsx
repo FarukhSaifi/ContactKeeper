@@ -1,5 +1,7 @@
 import { useEffect, useReducer } from "react";
-import api from "../../services/api";
+import { ERROR_MESSAGES } from "../../constants/app";
+import contactsService from "../../services/api/contacts";
+import { tokenManager } from "../../utils/storage";
 import ContactContext from "./contactContext";
 import contactReducer from "./ContactReducer";
 import {
@@ -8,7 +10,7 @@ import {
   CLEAR_FILTER,
   CONTACT_ERROR,
   DELETE_CONTACT,
-  FLITER_CONTACT,
+  FILTER_CONTACT,
   GET_CONTACTS,
   SET_CURRENT,
   UPDATE_CONTACT,
@@ -24,101 +26,74 @@ const ContactState = (props) => {
   };
   const [state, dispatch] = useReducer(contactReducer, initialState);
 
-  // Get contacts from API
   const getContacts = async () => {
     try {
-      const res = await api.get("/contacts");
-      dispatch({
-        type: GET_CONTACTS,
-        payload: res.data,
-      });
+      const data = await contactsService.getContacts();
+      dispatch({ type: GET_CONTACTS, payload: data });
     } catch (err) {
       dispatch({
         type: CONTACT_ERROR,
-        payload: err.response?.data?.msg || "Error loading contacts",
+        payload: err.response?.data?.msg || err.message || ERROR_MESSAGES.LOAD_CONTACTS,
       });
     }
   };
 
-  // Add contact to API
   const addContact = async (contact) => {
     try {
-      const res = await api.post("/contacts", contact);
-      dispatch({
-        type: ADD_CONTACT,
-        payload: res.data,
-      });
+      const data = await contactsService.createContact(contact);
+      dispatch({ type: ADD_CONTACT, payload: data });
     } catch (err) {
       dispatch({
         type: CONTACT_ERROR,
-        payload: err.response?.data?.msg || "Error adding contact",
+        payload: err.response?.data?.msg || err.message || ERROR_MESSAGES.ADD_CONTACT,
       });
     }
   };
 
-  // Delete contact from API
   const deleteContact = async (id) => {
     try {
-      await api.delete(`/contacts/${id}`);
-      dispatch({
-        type: DELETE_CONTACT,
-        payload: id,
-      });
+      await contactsService.deleteContact(id);
+      dispatch({ type: DELETE_CONTACT, payload: id });
     } catch (err) {
       dispatch({
         type: CONTACT_ERROR,
-        payload: err.response?.data?.msg || "Error deleting contact",
+        payload: err.response?.data?.msg || err.message || ERROR_MESSAGES.DELETE_CONTACT,
       });
     }
   };
 
-  //    SET_CURRENT,
-  const setCurrent = (SingleContact) => {
-    dispatch({
-      type: SET_CURRENT,
-      payload: SingleContact,
-    });
+  const setCurrent = (singleContact) => {
+    dispatch({ type: SET_CURRENT, payload: singleContact });
   };
 
-  //    CLEAR_CURRENT,
   const clearCurrent = () => {
     dispatch({ type: CLEAR_CURRENT });
   };
 
-  // Update contact in API
   const updateContact = async (contact) => {
     try {
-      const res = await api.put(`/contacts/${contact._id}`, contact);
-      dispatch({
-        type: UPDATE_CONTACT,
-        payload: res.data,
-      });
+      const data = await contactsService.updateContact(contact._id, contact);
+      dispatch({ type: UPDATE_CONTACT, payload: data });
     } catch (err) {
       dispatch({
         type: CONTACT_ERROR,
-        payload: err.response?.data?.msg || "Error updating contact",
+        payload: err.response?.data?.msg || err.message || ERROR_MESSAGES.UPDATE_CONTACT,
       });
     }
   };
 
-  //    FLITER_CONTACT,
   const filterContacts = (text) => {
-    dispatch({ type: FLITER_CONTACT, payload: text });
+    dispatch({ type: FILTER_CONTACT, payload: text });
   };
 
-  //    CLEAR_FILTER,
   const clearFilter = () => {
     dispatch({ type: CLEAR_FILTER });
   };
 
-  // Load contacts on component mount - only if user is authenticated
   useEffect(() => {
-    // Check if user is authenticated before loading contacts
-    const token = localStorage.getItem("token");
-    if (token) {
+    if (tokenManager.get()) {
       getContacts();
     } else {
-      // Set loading to false if no token
       dispatch({ type: CONTACT_ERROR, payload: null });
     }
   }, []);

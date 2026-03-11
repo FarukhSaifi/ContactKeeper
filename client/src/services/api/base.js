@@ -1,18 +1,21 @@
+/**
+ * Shared axios instance for all API calls.
+ * - Base URL and timeout from constants/api.js
+ * - Request: attaches Bearer token from tokenManager when present and valid
+ * - Response: on 401 removes token and rejects with a normalized error (message set via handleError)
+ */
 import axios from "axios";
 import { API_BASE_URL, REQUEST_TIMEOUTS } from "../../constants/api";
 import { handleError } from "../../utils/helpers";
 import { tokenManager } from "../../utils/storage";
 
-// Create axios instance with base configuration
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: REQUEST_TIMEOUTS.DEFAULT,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
 });
 
-// Request interceptor to add auth token
+// Attach JWT to every request when available and not expired
 api.interceptors.request.use(
   (config) => {
     const token = tokenManager.get();
@@ -21,29 +24,20 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error),
 );
 
-// Response interceptor to handle errors
+// Normalize errors and clear token on 401 (components handle redirect)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const errorMessage = handleError(error);
-
     if (error.response?.status === 401) {
-      // Token expired or invalid
       tokenManager.remove();
-      // Don't redirect here, let the component handle it
       console.warn("Token expired or invalid, please login again");
     }
-
-    return Promise.reject({
-      ...error,
-      message: errorMessage,
-    });
-  }
+    return Promise.reject({ ...error, message: errorMessage });
+  },
 );
 
 export default api;

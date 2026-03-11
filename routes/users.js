@@ -1,64 +1,58 @@
+/**
+ * User registration route: POST /api/users.
+ * Creates user with hashed password and returns JWT (same shape as login).
+ */
 const express = require("express");
-routes = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
-const { check, validationResult } = require("express-validator");
+const { check } = require("express-validator");
 
+const router = express.Router();
 const User = require("../modals/User");
-//@routes   POST api/users
-//@desc     Register A New User
-//@access   public
-routes.post(
-  "/",
-  [
-    // name is not Empty
-    check("name", "Name Is Reqiured").not().isEmpty(),
-    // Email must be an email
-    check("email", "E-mail is reqiured").isEmail(),
-    // password must be at least 6 chars long
-    check("password", "Enter the Password 6 And more characters").isLength({
-      min: 6,
-    }),
-  ],
+const { HTTP_STATUS, MESSAGES, JWT } = require("../config/constants");
+const { handleValidationErrors, sendServerError } = require("../utils/routeHelpers");
 
-  async (req, res) => {
-    const error = validationResult(req);
-    if (!error.isEmpty()) {
-      return res.status(400).json({ error: error.array() });
-    }
-    const { name, email, password } = req.body;
-    try {
-      let user = await User.findOne({ email });
-      if (user) {
-        return res.status(400).json({ msg: "User Already Exists" });
-      }
-      user = new User({ name, email, password });
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-      await user.save();
+// Validation rules for POST / (register)
+const registerValidation = [
+  check("name", "Name is required").trim().notEmpty(),
+  check("email", "Valid email is required").isEmail().normalizeEmail(),
+  check("password", "Password must be at least 6 characters").isLength({ min: 6 }),
+];
 
-      // Send payload by token
-      const payload = {
-        user: {
-          id: user.id,
-        },
-      };
-      // JWT
-      jwt.sign(
-        payload,
-        config.get("jwtSecret"),
-        { expiresIn: 3600 },
-        (err, token) => {
-          if (err) throw err;
-          res.json({ token });
-        }
-      );
-    } catch (error) {
-      console.error(error.message);
-      res.status(500).send("Sever error");
+/** Promisified JWT sign; payload should include { user: { id } }. */
+function signToken(payload) {
+  return new Promise((resolve, reject) => {
+    jwt.sign(payload, config.get("jwtSecret"), { expiresIn: JWT.EXPIRES_IN }, (err, token) =>
+      err ? reject(err) : resolve(token),
+    );
+  });
+}
+
+// POST /api/users – register; returns 201 and { token }
+router.post("/", registerValidation, async (req, res) => {
+  if (handleValidationErrors(req, res)) return;
+
+  const { name, email, password } = req.body;
+
+  try {
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ msg: MESSAGES.USER_EXISTS });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      name: name.trim(),
+      email: email.toLowerCase(),
+      password: hashedPassword,
+    });
+
+    const token = await signToken({ user: { id: user.id } });
+    res.status(201).json({ token });
+  } catch (err) {
+    sendServerError(res, err, "users");
   }
-);
+});
 
-module.exports = routes;
+module.exports = router;

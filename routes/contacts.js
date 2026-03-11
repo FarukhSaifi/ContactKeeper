@@ -1,115 +1,130 @@
+/**
+ * Contact CRUD routes under /api/contacts.
+ * All routes except GET/POST / require auth; update/delete enforce ownership via user id.
+ */
 const express = require("express");
-routes = express.Router();
-const { check, validationResult } = require("express-validator");
-const auth = require("../middleware/auth");
-const User = require("../modals/User");
-const Contact = require("../modals/Contacts");
+const mongoose = require("mongoose");
+const { check } = require("express-validator");
 
-//@routes   GET api/contact
-//@desc     Get All Contacts
-//@access   private
-routes.get("/", auth, async (req, res) => {
+const router = express.Router();
+const auth = require("../middleware/auth");
+const Contact = require("../modals/Contacts");
+const { HTTP_STATUS, MESSAGES, CONTACT_TYPE } = require("../config/constants");
+const { handleValidationErrors, sendServerError } = require("../utils/routeHelpers");
+
+// Validation for creating a contact
+const createContactValidation = [
+  check("name", "Name is required").trim().notEmpty(),
+  check("email", "Provide a valid email").optional().isEmail(),
+  check("phone", "Phone is required").trim().notEmpty(),
+  check("type", "Type must be personal or professional").optional().isIn(CONTACT_TYPE),
+];
+
+// Validation for updating (all fields optional but validated when present)
+const updateContactValidation = [
+  check("name", "Name cannot be empty").optional().trim().notEmpty(),
+  check("email", "Provide a valid email").optional().isEmail(),
+  check("type", "Type must be personal or professional").optional().isIn(CONTACT_TYPE),
+];
+
+/** Returns true only for a valid 24-char hex MongoDB ObjectId. */
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === id;
+}
+
+// GET /api/contacts – list contacts for the authenticated user, newest first
+router.get("/", auth, async (req, res) => {
   try {
-    const contacts = await Contact.find({ user: req.user.id }).sort({
-      date: -1,
-    });
+    const contacts = await Contact.find({ user: req.user.id }).sort({ date: -1 }).lean();
     res.json(contacts);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Server Error");
+    sendServerError(res, err, "contacts");
   }
 });
 
-//@routes   POST api/contacts
-//@desc     Create Contact
-//@access   private
-routes.post("/", [auth, [check("name", "Name is Required").not().isEmail()]], async (req, res) => {
-  const error = validationResult(req);
-  if (!error.isEmpty()) {
-    return res.status(400).json({ error: error.array() });
-  }
+// POST /api/contacts – create contact; body: name, email?, phone, type?
+router.post("/", auth, createContactValidation, async (req, res) => {
+  if (handleValidationErrors(req, res)) return;
 
   const { name, email, phone, type } = req.body;
 
   try {
-    const newContact = new Contact({
+    const contact = await Contact.create({
       user: req.user.id,
-      name,
-      email,
-      phone,
-      type,
+      name: name.trim(),
+      email: email?.trim() || undefined,
+      phone: phone?.trim(),
+      type: type || "personal",
     });
-
-    const contact = await newContact.save();
-
-    res.json(contact);
+    res.status(201).json(contact);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Server Error");
+    sendServerError(res, err, "contacts");
   }
 });
 
-//@routes   PUT api/contacts/:id
-//@desc     Update Contact
-//@access   private
-routes.put("/:id", auth, async (req, res) => {
+// PUT /api/contacts/:id – update contact (only provided fields); must own contact
+router.put("/:id", auth, updateContactValidation, async (req, res) => {
+  if (handleValidationErrors(req, res)) return;
+
   const { name, email, phone, type } = req.body;
 
-  // Build contact object
-  const contactFields = {};
-  if (name) contactFields.name = name;
-  if (email) contactFields.email = email;
-  if (phone) contactFields.phone = phone;
-  if (type) contactFields.type = type;
+  const updates = {};
+  if (name !== undefined) updates.name = name.trim();
+  if (email !== undefined) updates.email = email.trim();
+  if (phone !== undefined) updates.phone = phone.trim();
+  if (type !== undefined) updates.type = type;
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({ msg: MESSAGES.PROVIDE_FIELD_TO_UPDATE });
+  }
 
   try {
-    let contact = await Contact.findById(req.params.id);
-
-    if (!contact) {
-      return res.status(404).json({ msg: "Contact not found" });
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ msg: MESSAGES.INVALID_CONTACT_ID });
     }
 
-    // Make sure user owns contact
-    if (contact.user.toString() !== req.user.id) {
-      return res.status(401).json({ msg: "Not authorized" });
-    }
-
-    contact = await Contact.findByIdAndUpdate(
-      req.params.id,
-      { $set: contactFields },
-      { new: true }
+    const contact = await Contact.findOneAndUpdate(
+      { _id: req.params.id, user: req.user.id },
+      { $set: updates },
+      { new: true, runValidators: true },
     );
 
+    if (!contact) {
+      const exists = await Contact.findById(req.params.id).select("_id").lean();
+      return res.status(exists ? HTTP_STATUS.UNAUTHORIZED : HTTP_STATUS.NOT_FOUND).json({
+        msg: exists ? MESSAGES.NOT_AUTHORIZED : MESSAGES.CONTACT_NOT_FOUND,
+      });
+    }
+
     res.json(contact);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    sendServerError(res, err, "contacts");
   }
 });
 
-//@routes   DELETE api/contacts/:id
-//@desc     Delete Contact
-//@access   private
-routes.delete("/:id", auth, async (req, res) => {
+// DELETE /api/contacts/:id – delete contact; must own contact
+router.delete("/:id", auth, async (req, res) => {
   try {
-    let contact = await Contact.findById(req.params.id);
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ msg: MESSAGES.INVALID_CONTACT_ID });
+    }
+
+    const contact = await Contact.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user.id,
+    });
 
     if (!contact) {
-      return res.status(404).json({ msg: "Contact not found" });
+      const exists = await Contact.findById(req.params.id).select("_id").lean();
+      return res.status(exists ? HTTP_STATUS.UNAUTHORIZED : HTTP_STATUS.NOT_FOUND).json({
+        msg: exists ? MESSAGES.NOT_AUTHORIZED : MESSAGES.CONTACT_NOT_FOUND,
+      });
     }
 
-    // Make sure user owns contact
-    if (contact.user.toString() !== req.user.id) {
-      return res.status(401).json({ msg: "Not authorized" });
-    }
-
-    await Contact.findByIdAndRemove(req.params.id);
-
-    res.json({ msg: "Contact removed" });
+    res.json({ msg: MESSAGES.CONTACT_REMOVED });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    sendServerError(res, err, "contacts");
   }
 });
 
-module.exports = routes;
+module.exports = router;

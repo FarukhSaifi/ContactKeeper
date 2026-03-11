@@ -1,8 +1,8 @@
 import { Box } from "@mui/material";
 import React from "react";
-import ContactForm from "../../components/forms/ContactForm";
 import { useApi } from "../../hooks/useApi";
 import { useContacts } from "../../hooks/useContacts";
+import ContactForm from "../forms/ContactForm";
 
 const ContactFormWrapper = () => {
   const { current, addContact, updateContact, clearCurrent } = useContacts();
@@ -17,7 +17,7 @@ const ContactFormWrapper = () => {
           (result) => {
             console.log("Contact updated successfully:", result);
             clearCurrent();
-          }
+          },
         );
       } else {
         // Add new contact
@@ -25,7 +25,7 @@ const ContactFormWrapper = () => {
           () => addContact(formData),
           (result) => {
             console.log("Contact added successfully:", result);
-          }
+          },
         );
       }
     } catch (err) {

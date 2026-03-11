@@ -1,23 +1,22 @@
-// API Configuration Constants
+/**
+ * API configuration: base URL, endpoint paths, and request timeouts.
+ * Used by services/api/base.js and the individual service modules.
+ */
+
 export const API_BASE_URL = "/api";
 
-// API Endpoints
 export const API_ENDPOINTS = {
-  // Auth endpoints
   AUTH: {
     LOGIN: "/auth",
     REGISTER: "/users",
     GET_USER: "/auth",
   },
-
-  // Contact endpoints
   CONTACTS: {
     BASE: "/contacts",
     BY_ID: (id) => `/contacts/${id}`,
   },
 };
 
-// HTTP Status Codes
 export const HTTP_STATUS = {
   OK: 200,
   CREATED: 201,
@@ -28,7 +27,6 @@ export const HTTP_STATUS = {
   INTERNAL_SERVER_ERROR: 500,
 };
 
-// Request Timeouts
 export const REQUEST_TIMEOUTS = {
   DEFAULT: 10000,
   UPLOAD: 30000,

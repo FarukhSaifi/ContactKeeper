@@ -1,46 +1,56 @@
+/**
+ * Contact Keeper – Express app entry point.
+ * Sets up DB, JSON middleware, API routes, optional static client, and error handler.
+ */
 const express = require("express");
 const path = require("path");
+
 require("dotenv").config();
+
 const connectDB = require("./config/db");
+const { MESSAGES } = require("./config/constants");
 
 const app = express();
 
-// Connect Database
+// Config
+const PORT = process.env.PORT || 5001;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+// Connect to MongoDB (non-blocking; app starts either way)
 connectDB();
 
-// Accept Data In JSON
+// Parse JSON request bodies
 app.use(express.json({ extended: false }));
 
-app.get("/", (req, res) => res.json({ msg: "welcome to Contact Keeper" }));
+// Health / welcome
+app.get("/", (_req, res) => {
+  res.json({ msg: "Welcome to Contact Keeper" });
+});
 
+// API routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/users", require("./routes/users"));
 app.use("/api/contacts", require("./routes/contacts"));
 
-// Handle unknown API routes
-app.use("/api", (req, res) => {
-  return res.status(404).json({ error: "API route not found" });
+// 404 for any other /api/* path
+app.use("/api", (_req, res) => {
+  res.status(404).json({ error: MESSAGES.API_ROUTE_NOT_FOUND });
 });
 
-// Serve static assets in production
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static("client/build"));
-  app.get("*", (req, res) => {
-    return res.sendFile(
-      path.resolve(__dirname, "client", "build", "index.html")
-    );
+// Production: serve built React app and SPA fallback
+if (IS_PRODUCTION) {
+  app.use(express.static(path.join(__dirname, "client", "build")));
+  app.get("*", (_req, res) => {
+    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
   });
 }
 
-// Generic error handler
-// eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  return res.status(500).json({ error: "Server error" });
+// Global error handler (must be last)
+app.use((err, _req, res, _next) => {
+  console.error("[server]", err.stack);
+  res.status(500).json({ error: MESSAGES.SERVER_ERROR });
 });
 
-const PORT = process.env.PORT || 5001;
-
 app.listen(PORT, () => {
-  console.log(`Server is Started ${PORT} 👀`);
+  console.log(`Server listening on port ${PORT}`);
 });

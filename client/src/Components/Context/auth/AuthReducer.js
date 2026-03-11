@@ -1,3 +1,4 @@
+import { tokenManager } from "../../../utils/storage";
 import {
   AUTH_ERROR,
   CLEAR_ERRORS,
@@ -20,7 +21,7 @@ export default (state, action) => {
       };
     case REGISTER_SUCCESS:
     case LOGIN_SUCCESS:
-      localStorage.setItem("token", action.payload.token);
+      tokenManager.set(action.payload.token);
       return {
         ...state,
         ...action.payload,
@@ -31,7 +32,7 @@ export default (state, action) => {
     case AUTH_ERROR:
     case LOGIN_FAIL:
     case LOGOUT:
-      localStorage.removeItem("token");
+      tokenManager.remove();
       return {
         ...state,
         token: null,

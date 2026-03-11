@@ -1,5 +1,6 @@
 import { Box, Checkbox, FormControlLabel, Link, Typography } from "@mui/material";
 import React from "react";
+import { ROUTES } from "../../constants/app";
 import { useForm } from "../../hooks/useApi";
 import { validators } from "../../utils/validation";
 import Button from "../ui/Button";
@@ -28,14 +29,10 @@ const AuthForm = ({
           name: validators.name,
           email: validators.email,
           password: validators.password,
-          confirmPassword: (value, formData) =>
-            validators.confirmPassword(value, formData.password),
+          confirmPassword: (value, formData) => validators.confirmPassword(value, formData.password),
         };
 
-  const { values, errors, touched, handleChange, handleBlur, validate } = useForm(
-    initialValues,
-    validationRules
-  );
+  const { values, errors, touched, handleChange, handleBlur, validate } = useForm(initialValues, validationRules);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -53,11 +50,7 @@ const AuthForm = ({
   return (
     <Box className={`space-y-6 ${className}`}>
       <div className="text-center">
-        <Typography
-          component="h1"
-          variant="h4"
-          className="text-3xl font-bold text-gray-900 dark:text-white mb-2"
-        >
+        <Typography component="h1" variant="h4" className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           {mode === "login" ? "Sign in to your account" : "Create your account"}
         </Typography>
         <Typography variant="body1" className="text-gray-600 dark:text-gray-400">
@@ -67,11 +60,7 @@ const AuthForm = ({
         </Typography>
       </div>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
+      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {mode === "register" && (
@@ -162,7 +151,7 @@ const AuthForm = ({
           <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
             {mode === "login" ? "Don't have an account? " : "Already have an account? "}
             <Link
-              href={mode === "login" ? "/register" : "/login"}
+              href={mode === "login" ? ROUTES.REGISTER : ROUTES.LOGIN}
               className="text-blue-600 hover:text-blue-500 dark:text-blue-400 font-medium"
             >
               {mode === "login" ? "Sign up" : "Sign in"}
