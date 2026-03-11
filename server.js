@@ -8,12 +8,11 @@ const path = require("path");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
-const { MESSAGES } = require("./config/constants");
+const { MESSAGES, DEFAULT_PORT, WELCOME_MSG } = require("./config/constants");
 
 const app = express();
 
-// Config
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || DEFAULT_PORT;
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 // Connect to MongoDB (non-blocking; app starts either way)
@@ -22,9 +21,8 @@ connectDB();
 // Parse JSON request bodies
 app.use(express.json({ extended: false }));
 
-// Health / welcome
 app.get("/", (_req, res) => {
-  res.json({ msg: "Welcome to Contact Keeper" });
+  res.json({ msg: WELCOME_MSG });
 });
 
 // API routes

@@ -1,6 +1,6 @@
 import { Box, Checkbox, FormControlLabel, Link, Typography } from "@mui/material";
 import React from "react";
-import { ROUTES } from "../../constants/app";
+import { ROUTES, UI_COPY } from "../../constants/app";
 import { useForm } from "../../hooks/useApi";
 import { validators } from "../../utils/validation";
 import Button from "../ui/Button";
@@ -44,19 +44,17 @@ const AuthForm = ({
   };
 
   if (loading) {
-    return <Loading message="Processing..." />;
+    return <Loading message={UI_COPY.AUTH_PROCESSING} />;
   }
 
   return (
     <Box className={`space-y-6 ${className}`}>
       <div className="text-center">
         <Typography component="h1" variant="h4" className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          {mode === "login" ? "Sign in to your account" : "Create your account"}
+          {mode === "login" ? UI_COPY.AUTH_LOGIN_TITLE : UI_COPY.AUTH_REGISTER_TITLE}
         </Typography>
         <Typography variant="body1" className="text-gray-600 dark:text-gray-400">
-          {mode === "login"
-            ? "Welcome back! Please sign in to continue."
-            : "Join us today and start managing your contacts."}
+          {mode === "login" ? UI_COPY.AUTH_LOGIN_SUBTITLE : UI_COPY.AUTH_REGISTER_SUBTITLE}
         </Typography>
       </div>
 

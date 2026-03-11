@@ -54,7 +54,7 @@ router.post("/", auth, createContactValidation, async (req, res) => {
       name: name.trim(),
       email: email?.trim() || undefined,
       phone: phone?.trim(),
-      type: type || "personal",
+      type: type || CONTACT_TYPE[0],
     });
     res.status(201).json(contact);
   } catch (err) {

@@ -45,10 +45,16 @@ const CONTACT_TYPE = ["personal", "professional"];
 // Fallback MongoDB URI when env and config are not set
 const DEFAULT_MONGO_URI = "mongodb://localhost:27017/contactkeeper";
 
+// Server config (PORT from env or this default)
+const DEFAULT_PORT = 5001;
+const WELCOME_MSG = "Welcome to Contact Keeper";
+
 module.exports = {
   HTTP_STATUS,
   MESSAGES,
   JWT,
   CONTACT_TYPE,
   DEFAULT_MONGO_URI,
+  DEFAULT_PORT,
+  WELCOME_MSG,
 };

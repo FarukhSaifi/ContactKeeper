@@ -12,7 +12,7 @@ const ContactForm = ({
     name: "",
     email: "",
     phone: "",
-    type: "personal",
+    type: CONTACT_TYPES.PERSONAL,
   },
   onSubmit,
   loading = false,
@@ -23,12 +23,11 @@ const ContactForm = ({
   onCancel,
   className = "",
 }) => {
-  const { values, errors, touched, handleChange, handleBlur, validate, reset, setFieldValue } =
-    useForm(initialValues, {
-      name: validators.name,
-      email: validators.email,
-      phone: validators.phone,
-    });
+  const { values, errors, touched, handleChange, handleBlur, validate, reset, setFieldValue } = useForm(initialValues, {
+    name: validators.name,
+    email: validators.email,
+    phone: validators.phone,
+  });
 
   // Update form when initial values change
   useEffect(() => {
@@ -61,21 +60,13 @@ const ContactForm = ({
   return (
     <Box className={`space-y-6 ${className}`}>
       <div className="text-center">
-        <Typography
-          component="h1"
-          variant="h5"
-          className="text-2xl font-bold text-gray-800 dark:text-white mb-2"
-        >
+        <Typography component="h1" variant="h5" className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
           {initialValues._id ? "Edit Contact" : "Add Contact"}
         </Typography>
         <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full"></div>
       </div>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
+      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Grid container spacing={3}>

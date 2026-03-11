@@ -1,5 +1,6 @@
 import { Box } from "@mui/material";
 import React from "react";
+import { CONTACT_TYPES, UI_COPY } from "../../constants/app";
 import { useApi } from "../../hooks/useApi";
 import { useContacts } from "../../hooks/useContacts";
 import ContactForm from "../forms/ContactForm";
@@ -45,13 +46,13 @@ const ContactFormWrapper = () => {
             name: "",
             email: "",
             phone: "",
-            type: "personal",
+            type: CONTACT_TYPES.PERSONAL,
           }
         }
         onSubmit={handleSubmit}
         loading={loading}
         error={error}
-        submitText={current ? "Update Contact" : "Add Contact"}
+        submitText={current ? UI_COPY.CONTACT_UPDATE_BUTTON : UI_COPY.CONTACT_ADD_BUTTON}
         showCancel={!!current}
         onCancel={handleCancel}
       />
