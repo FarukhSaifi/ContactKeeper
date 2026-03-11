@@ -3,7 +3,7 @@ import { AppBar, Button, IconButton, Toolbar, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
 import { Link } from "react-router-dom";
-import { ROUTES } from "../../constants/app";
+import { APP_CONFIG, ROUTES } from "../../constants/app";
 import ThemeToggle from "./ThemeToggle";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
@@ -18,7 +18,7 @@ const StyledTypography = styled(Typography)(({ theme }) => ({
   flexGrow: 1,
 }));
 
-const Navbar = ({ Name = "Contact Keeper" }) => {
+const Navbar = ({ Name = APP_CONFIG.NAME }) => {
   return (
     <div>
       <StyledAppBar position="static">

@@ -48,7 +48,7 @@ export const VALIDATION_RULES = {
   NAME: { MIN_LENGTH: 2, MAX_LENGTH: 50 },
   EMAIL: { PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
   PASSWORD: { MIN_LENGTH: 6, MAX_LENGTH: 128 },
-  PHONE: { PATTERN: /^[\+]?[1-9][\d]{0,15}$/ },
+  PHONE: { PATTERN: /^[+]?[1-9][\d]{0,15}$/ },
 };
 
 // UI timing and pagination
@@ -57,4 +57,19 @@ export const UI_CONFIG = {
   TOAST_DURATION: 5000,
   ANIMATION_DURATION: 300,
   PAGINATION: { DEFAULT_PAGE_SIZE: 10, MAX_PAGE_SIZE: 100 },
+};
+
+// UI copy (labels, headings, descriptions)
+export const UI_COPY = {
+  AUTH_LOGIN_TITLE: "Sign in to your account",
+  AUTH_LOGIN_SUBTITLE: "Welcome back! Please sign in to continue.",
+  AUTH_REGISTER_TITLE: "Create your account",
+  AUTH_REGISTER_SUBTITLE: "Join us today and start managing your contacts.",
+  AUTH_PROCESSING: "Processing...",
+  ABOUT_TITLE: "About Contact Keeper",
+  ABOUT_WELCOME: "Welcome to Contact Keeper",
+  ABOUT_DESCRIPTION:
+    "Contact Keeper is a modern, intuitive contact management application built with React, Material-UI, and Tailwind CSS. It provides a seamless experience for managing your personal and professional contacts with a beautiful, responsive interface.",
+  CONTACT_ADD_BUTTON: "Add Contact",
+  CONTACT_UPDATE_BUTTON: "Update Contact",
 };
