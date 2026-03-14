@@ -5,27 +5,25 @@ import { useApi } from "../../hooks/useApi";
 import { useContacts } from "../../hooks/useContacts";
 import ContactForm from "../forms/ContactForm";
 
-const ContactFormWrapper = () => {
+const ContactFormWrapper = ({ onSuccess, onCancel: onCancelProp }) => {
   const { current, addContact, updateContact, clearCurrent } = useContacts();
   const { execute, loading, error } = useApi();
 
   const handleSubmit = async (formData) => {
     try {
       if (current) {
-        // Update existing contact
         await execute(
           () => updateContact({ ...current, ...formData }),
-          (result) => {
-            console.log("Contact updated successfully:", result);
+          () => {
             clearCurrent();
+            onSuccess?.();
           },
         );
       } else {
-        // Add new contact
         await execute(
           () => addContact(formData),
-          (result) => {
-            console.log("Contact added successfully:", result);
+          () => {
+            onSuccess?.();
           },
         );
       }
@@ -36,6 +34,7 @@ const ContactFormWrapper = () => {
 
   const handleCancel = () => {
     clearCurrent();
+    onCancelProp?.();
   };
 
   return (
