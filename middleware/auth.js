@@ -1,30 +1,26 @@
-/**
- * JWT auth middleware for protected routes.
- * Reads token from Authorization: Bearer <token> or x-auth-token, verifies it, sets req.user.
- */
 const jwt = require("jsonwebtoken");
-const config = require("config");
-const { HTTP_STATUS, MESSAGES } = require("../config/constants");
+const { BEARER_PREFIX, AUTH_TOKEN_HEADER, MESSAGES } = require("../constants");
+const { assertJwtSecret } = require("../utils/tokenService");
 
-/**
- * Middleware: require valid JWT and attach decoded user to req.user.
- * Sends 401 with message if missing or invalid token.
- */
-function auth(req, res, next) {
+module.exports = function (req, res, next) {
   const authHeader = req.header("Authorization");
-  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : req.header("x-auth-token");
+  const token =
+    authHeader && authHeader.startsWith(BEARER_PREFIX)
+      ? authHeader.slice(BEARER_PREFIX.length)
+      : req.header(AUTH_TOKEN_HEADER);
 
   if (!token) {
-    return res.status(HTTP_STATUS.UNAUTHORIZED).json({ msg: MESSAGES.NO_TOKEN });
+    return res.status(401).json({ msg: MESSAGES.AUTH.NO_TOKEN });
   }
 
   try {
-    const decoded = jwt.verify(token, config.get("jwtSecret"));
+    const decoded = jwt.verify(token, assertJwtSecret());
     req.user = decoded.user;
     next();
-  } catch {
-    return res.status(HTTP_STATUS.UNAUTHORIZED).json({ msg: MESSAGES.INVALID_TOKEN });
+  } catch (err) {
+    if (err.status === 500) {
+      return res.status(500).json({ msg: err.message });
+    }
+    res.status(401).json({ msg: MESSAGES.AUTH.INVALID_TOKEN });
   }
-}
-
-module.exports = auth;
+};

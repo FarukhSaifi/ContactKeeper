@@ -1,7 +1,9 @@
+import { THEME_MODES } from "@/constants/app";
+import { darkTheme, lightTheme } from "@/theme/theme";
+import { themeManager } from "@/utils/storage";
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { darkTheme, lightTheme } from "../theme/theme";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext();
 
@@ -15,41 +17,34 @@ export const useTheme = () => {
 
 export const ThemeProvider = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Check localStorage first, then system preference
-    const savedTheme = localStorage.getItem("theme");
+    const savedTheme = themeManager.get();
     if (savedTheme) {
-      return savedTheme === "dark";
+      return savedTheme === THEME_MODES.DARK;
     }
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
   useEffect(() => {
-    // Save theme preference to localStorage
-    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
-
-    // Update document class for Tailwind dark mode
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    const theme = isDarkMode ? THEME_MODES.DARK : THEME_MODES.LIGHT;
+    themeManager.set(theme);
+    document.documentElement.classList.toggle("dark", isDarkMode);
   }, [isDarkMode]);
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev);
   };
 
-  const theme = isDarkMode ? darkTheme : lightTheme;
-
-  const value = {
-    isDarkMode,
-    toggleTheme,
-    theme,
-  };
+  const muiTheme = isDarkMode ? darkTheme : lightTheme;
 
   return (
-    <ThemeContext.Provider value={value}>
-      <MuiThemeProvider theme={theme}>
+    <ThemeContext.Provider
+      value={{
+        isDarkMode,
+        toggleTheme,
+        theme: muiTheme,
+      }}
+    >
+      <MuiThemeProvider theme={muiTheme}>
         <CssBaseline />
         {children}
       </MuiThemeProvider>

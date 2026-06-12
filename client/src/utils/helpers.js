@@ -112,8 +112,16 @@ export const filterBySearch = (array, searchTerm, fields = []) => {
 export const handleError = (error, defaultMessage = "An error occurred") => {
   console.error("Error:", error);
 
+  if (error.response?.data?.msg) {
+    return error.response.data.msg;
+  }
+
   if (error.response?.data?.message) {
     return error.response.data.message;
+  }
+
+  if (error.response?.data?.error) {
+    return error.response.data.error;
   }
 
   if (error.message) {

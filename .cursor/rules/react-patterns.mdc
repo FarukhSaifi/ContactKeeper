@@ -1,0 +1,22 @@
+---
+description: React component and hook patterns for ContactKeeper client
+globs: client/src/**/*.{jsx,js}
+alwaysApply: false
+---
+
+# React Patterns
+
+```jsx
+// ❌ BAD — inline strings, relative imports
+throw new Error("useAuth must be used within AuthProvider");
+import AuthContext from "../components/Context/auth/AuthContext";
+
+// ✅ GOOD — constants + aliases
+import { HOOK_ERRORS } from "@/constants/errors";
+import AuthContext from "@/components/Context/auth/AuthContext";
+throw new Error(HOOK_ERRORS.USE_AUTH_CONTEXT);
+```
+
+- Derive state during render; avoid syncing props to state in `useEffect`.
+- Use `useCallback` only when passing to memoized children or as effect deps.
+- Keep API calls in context/services — components call hooks, not `axios` directly.

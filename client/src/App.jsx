@@ -1,78 +1,32 @@
-import { Container, CssBaseline } from "@mui/material";
-import React from "react";
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { BrowserRouter as Router } from "react-router-dom";
 
-import AlertState from "./Components/Context/Alerts/AlertState";
-import AuthState from "./Components/Context/auth/AuthState";
-import ContactState from "./Components/Context/ContactState";
-import { ThemeProvider } from "./contexts/ThemeContext";
-
-import ProtectedRoute from "./Components/auth/ProtectedRoute";
-import Home from "./Components/Layout/Home";
-import Navbar from "./Components/Layout/Navbar";
-import About from "./Components/Pages/About";
-import Login from "./Components/Pages/Login";
-import Register from "./Components/Pages/Register";
-import ErrorBoundary from "./Components/ui/ErrorBoundary";
+import AppShell from "@/app/AppShell";
+import AppRoutes from "@/app/Routes";
+import AlertState from "@/components/Context/Alerts/AlertState";
+import AuthState from "@/components/Context/auth/AuthState";
+import ContactState from "@/components/Context/ContactState";
+import Alert from "@/components/Layout/Alert";
+import Navbar from "@/components/Layout/Navbar";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <CssBaseline />
-        <AuthState>
-          <ContactState>
-            <AlertState>
+        <AlertState>
+          <AuthState>
+            <ContactState>
               <Router>
-                <Routes>
-                  <Route
-                    path="/"
-                    element={
-                      <ProtectedRoute>
-                        <Home />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/about"
-                    element={
-                      <>
-                        <Navbar />
-                        <Container maxWidth="lg" className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-                          <ProtectedRoute>
-                            <About />
-                          </ProtectedRoute>
-                        </Container>
-                      </>
-                    }
-                  />
-                  <Route
-                    path="/register"
-                    element={
-                      <>
-                        <Navbar />
-                        <Container maxWidth="sm" className="min-h-screen py-8">
-                          <Register />
-                        </Container>
-                      </>
-                    }
-                  />
-                  <Route
-                    path="/login"
-                    element={
-                      <>
-                        <Navbar />
-                        <Container maxWidth="sm" className="min-h-screen py-8">
-                          <Login />
-                        </Container>
-                      </>
-                    }
-                  />
-                </Routes>
+                <Navbar />
+                <Alert />
+                <AppShell>
+                  <AppRoutes />
+                </AppShell>
               </Router>
-            </AlertState>
-          </ContactState>
-        </AuthState>
+            </ContactState>
+          </AuthState>
+        </AlertState>
       </ThemeProvider>
     </ErrorBoundary>
   );
