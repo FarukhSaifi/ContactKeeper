@@ -1,70 +1,64 @@
-import { VALIDATION_RULES } from "../constants/app";
+import { VALIDATION_RULES } from "@/constants/app";
+import { VALIDATION_MESSAGES } from "@/constants/validation";
 
-// Validation utility functions
 export const validators = {
-  // Name validation
   name: (value) => {
     if (!value || value.trim().length === 0) {
-      return "Name is required";
+      return VALIDATION_MESSAGES.NAME_REQUIRED;
     }
     if (value.length < VALIDATION_RULES.NAME.MIN_LENGTH) {
-      return `Name must be at least ${VALIDATION_RULES.NAME.MIN_LENGTH} characters`;
+      return VALIDATION_MESSAGES.NAME_MIN;
     }
     if (value.length > VALIDATION_RULES.NAME.MAX_LENGTH) {
-      return `Name must be less than ${VALIDATION_RULES.NAME.MAX_LENGTH} characters`;
+      return VALIDATION_MESSAGES.NAME_MAX;
     }
     return null;
   },
 
-  // Email validation
   email: (value) => {
     if (!value || value.trim().length === 0) {
-      return "Email is required";
+      return VALIDATION_MESSAGES.EMAIL_REQUIRED;
     }
     if (!VALIDATION_RULES.EMAIL.PATTERN.test(value)) {
-      return "Please enter a valid email address";
+      return VALIDATION_MESSAGES.EMAIL_INVALID;
     }
     return null;
   },
 
-  // Password validation
   password: (value) => {
     if (!value || value.length === 0) {
-      return "Password is required";
+      return VALIDATION_MESSAGES.PASSWORD_REQUIRED;
     }
     if (value.length < VALIDATION_RULES.PASSWORD.MIN_LENGTH) {
-      return `Password must be at least ${VALIDATION_RULES.PASSWORD.MIN_LENGTH} characters`;
+      return VALIDATION_MESSAGES.PASSWORD_MIN;
     }
     if (value.length > VALIDATION_RULES.PASSWORD.MAX_LENGTH) {
-      return `Password must be less than ${VALIDATION_RULES.PASSWORD.MAX_LENGTH} characters`;
+      return VALIDATION_MESSAGES.PASSWORD_MAX;
     }
     return null;
   },
 
-  // Phone validation
   phone: (value) => {
     if (!value || value.trim().length === 0) {
-      return "Phone number is required";
+      return VALIDATION_MESSAGES.PHONE_REQUIRED;
     }
     if (!VALIDATION_RULES.PHONE.PATTERN.test(value.replace(/\s/g, ""))) {
-      return "Please enter a valid phone number";
+      return VALIDATION_MESSAGES.PHONE_INVALID;
     }
     return null;
   },
 
-  // Confirm password validation
   confirmPassword: (value, originalPassword) => {
     if (!value || value.length === 0) {
-      return "Please confirm your password";
+      return VALIDATION_MESSAGES.CONFIRM_PASSWORD_REQUIRED;
     }
     if (value !== originalPassword) {
-      return "Passwords do not match";
+      return VALIDATION_MESSAGES.PASSWORDS_MISMATCH;
     }
     return null;
   },
 };
 
-// Form validation helper
 export const validateForm = (formData, rules) => {
   const errors = {};
   let isValid = true;
@@ -91,13 +85,11 @@ export const validateForm = (formData, rules) => {
   return { errors, isValid };
 };
 
-// Sanitize input
 export const sanitizeInput = (input) => {
   if (typeof input !== "string") return input;
   return input.trim().replace(/[<>]/g, "");
 };
 
-// Format phone number
 export const formatPhoneNumber = (phone) => {
   const cleaned = phone.replace(/\D/g, "");
   const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);

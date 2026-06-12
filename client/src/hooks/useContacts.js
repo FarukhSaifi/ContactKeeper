@@ -1,12 +1,13 @@
+import ContactContext from "@/components/Context/contactContext";
+import { CONTACT_STATS_INITIAL } from "@/constants/app";
+import { HOOK_ERRORS } from "@/constants/errors";
 import { useContext } from "react";
-import ContactContext from "../Components/Context/contactContext";
 
-// Custom hook for contacts
 export const useContacts = () => {
   const context = useContext(ContactContext);
 
   if (!context) {
-    throw new Error("useContacts must be used within a ContactProvider");
+    throw new Error(HOOK_ERRORS.USE_CONTACTS_CONTEXT);
   }
 
   const {
@@ -46,16 +47,10 @@ export const useContacts = () => {
 
   // Get contact statistics
   const getContactStats = () => {
-    const stats = {
-      total: contacts.length,
-      personal: 0,
-      work: 0,
-      family: 0,
-      friend: 0,
-    };
+    const stats = { ...CONTACT_STATS_INITIAL, total: contacts.length };
 
     contacts.forEach((contact) => {
-      if (stats.hasOwnProperty(contact.type)) {
+      if (Object.hasOwn(stats, contact.type)) {
         stats[contact.type]++;
       }
     });

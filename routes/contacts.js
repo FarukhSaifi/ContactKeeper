@@ -1,130 +1,38 @@
-/**
- * Contact CRUD routes under /api/contacts.
- * All routes except GET/POST / require auth; update/delete enforce ownership via user id.
- */
 const express = require("express");
-const mongoose = require("mongoose");
-const { check } = require("express-validator");
+const { check, validationResult } = require("express-validator");
+
+const contactController = require("../controllers/contactController");
+const auth = require("../middleware/auth");
+const asyncHandler = require("../utils/asyncHandler");
+const { CONTACT_TYPES, MESSAGES } = require("../constants");
 
 const router = express.Router();
-const auth = require("../middleware/auth");
-const Contact = require("../modals/Contacts");
-const { HTTP_STATUS, MESSAGES, CONTACT_TYPE } = require("../config/constants");
-const { handleValidationErrors, sendServerError } = require("../utils/routeHelpers");
 
-// Validation for creating a contact
-const createContactValidation = [
-  check("name", "Name is required").trim().notEmpty(),
-  check("email", "Provide a valid email").optional().isEmail(),
-  check("phone", "Phone is required").trim().notEmpty(),
-  check("type", "Type must be personal or professional").optional().isIn(CONTACT_TYPE),
-];
-
-// Validation for updating (all fields optional but validated when present)
-const updateContactValidation = [
-  check("name", "Name cannot be empty").optional().trim().notEmpty(),
-  check("email", "Provide a valid email").optional().isEmail(),
-  check("type", "Type must be personal or professional").optional().isIn(CONTACT_TYPE),
-];
-
-/** Returns true only for a valid 24-char hex MongoDB ObjectId. */
-function isValidObjectId(id) {
-  return mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === id;
-}
-
-// GET /api/contacts – list contacts for the authenticated user, newest first
-router.get("/", auth, async (req, res) => {
-  try {
-    const contacts = await Contact.find({ user: req.user.id }).sort({ date: -1 }).lean();
-    res.json(contacts);
-  } catch (err) {
-    sendServerError(res, err, "contacts");
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
-});
+  next();
+};
 
-// POST /api/contacts – create contact; body: name, email?, phone, type?
-router.post("/", auth, createContactValidation, async (req, res) => {
-  if (handleValidationErrors(req, res)) return;
+router.get("/", auth, asyncHandler(contactController.getContacts));
 
-  const { name, email, phone, type } = req.body;
+router.post(
+  "/",
+  auth,
+  [
+    check("name", MESSAGES.VALIDATION.NAME_REQUIRED).not().isEmpty().trim(),
+    check("phone", MESSAGES.VALIDATION.PHONE_REQUIRED).not().isEmpty().trim(),
+    check("email", MESSAGES.VALIDATION.EMAIL_INVALID).optional().isEmail(),
+    check("type").optional().isIn(CONTACT_TYPES),
+  ],
+  validate,
+  asyncHandler(contactController.createContact),
+);
 
-  try {
-    const contact = await Contact.create({
-      user: req.user.id,
-      name: name.trim(),
-      email: email?.trim() || undefined,
-      phone: phone?.trim(),
-      type: type || CONTACT_TYPE[0],
-    });
-    res.status(201).json(contact);
-  } catch (err) {
-    sendServerError(res, err, "contacts");
-  }
-});
+router.put("/:id", auth, asyncHandler(contactController.updateContact));
 
-// PUT /api/contacts/:id – update contact (only provided fields); must own contact
-router.put("/:id", auth, updateContactValidation, async (req, res) => {
-  if (handleValidationErrors(req, res)) return;
-
-  const { name, email, phone, type } = req.body;
-
-  const updates = {};
-  if (name !== undefined) updates.name = name.trim();
-  if (email !== undefined) updates.email = email.trim();
-  if (phone !== undefined) updates.phone = phone.trim();
-  if (type !== undefined) updates.type = type;
-
-  if (Object.keys(updates).length === 0) {
-    return res.status(HTTP_STATUS.BAD_REQUEST).json({ msg: MESSAGES.PROVIDE_FIELD_TO_UPDATE });
-  }
-
-  try {
-    if (!isValidObjectId(req.params.id)) {
-      return res.status(HTTP_STATUS.BAD_REQUEST).json({ msg: MESSAGES.INVALID_CONTACT_ID });
-    }
-
-    const contact = await Contact.findOneAndUpdate(
-      { _id: req.params.id, user: req.user.id },
-      { $set: updates },
-      { new: true, runValidators: true },
-    );
-
-    if (!contact) {
-      const exists = await Contact.findById(req.params.id).select("_id").lean();
-      return res.status(exists ? HTTP_STATUS.UNAUTHORIZED : HTTP_STATUS.NOT_FOUND).json({
-        msg: exists ? MESSAGES.NOT_AUTHORIZED : MESSAGES.CONTACT_NOT_FOUND,
-      });
-    }
-
-    res.json(contact);
-  } catch (err) {
-    sendServerError(res, err, "contacts");
-  }
-});
-
-// DELETE /api/contacts/:id – delete contact; must own contact
-router.delete("/:id", auth, async (req, res) => {
-  try {
-    if (!isValidObjectId(req.params.id)) {
-      return res.status(HTTP_STATUS.BAD_REQUEST).json({ msg: MESSAGES.INVALID_CONTACT_ID });
-    }
-
-    const contact = await Contact.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user.id,
-    });
-
-    if (!contact) {
-      const exists = await Contact.findById(req.params.id).select("_id").lean();
-      return res.status(exists ? HTTP_STATUS.UNAUTHORIZED : HTTP_STATUS.NOT_FOUND).json({
-        msg: exists ? MESSAGES.NOT_AUTHORIZED : MESSAGES.CONTACT_NOT_FOUND,
-      });
-    }
-
-    res.json({ msg: MESSAGES.CONTACT_REMOVED });
-  } catch (err) {
-    sendServerError(res, err, "contacts");
-  }
-});
+router.delete("/:id", auth, asyncHandler(contactController.deleteContact));
 
 module.exports = router;

@@ -1,54 +1,68 @@
-/**
- * Contact Keeper – Express app entry point.
- * Sets up DB, JSON middleware, API routes, optional static client, and error handler.
- */
 const express = require("express");
 const path = require("path");
+const helmet = require("helmet");
+const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 
-require("dotenv").config();
-
+const config = require("./config");
 const connectDB = require("./config/db");
-const { MESSAGES, DEFAULT_PORT, WELCOME_MSG } = require("./config/constants");
+const { JSON_BODY_LIMIT, PATHS, RATE_LIMIT, MESSAGES } = require("./constants");
 
 const app = express();
 
-const PORT = process.env.PORT || DEFAULT_PORT;
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
-
-// Connect to MongoDB (non-blocking; app starts either way)
 connectDB();
 
-// Parse JSON request bodies
-app.use(express.json({ extended: false }));
+app.use(helmet());
+app.use(
+  cors({
+    origin: config.clientUrl,
+    credentials: true,
+  }),
+);
+app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
-app.get("/", (_req, res) => {
-  res.json({ msg: WELCOME_MSG });
+const apiLimiter = rateLimit({
+  windowMs: RATE_LIMIT.WINDOW_MS,
+  max: RATE_LIMIT.API_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-// API routes
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/users", require("./routes/users"));
-app.use("/api/contacts", require("./routes/contacts"));
-
-// 404 for any other /api/* path
-app.use("/api", (_req, res) => {
-  res.status(404).json({ error: MESSAGES.API_ROUTE_NOT_FOUND });
+const authLimiter = rateLimit({
+  windowMs: RATE_LIMIT.WINDOW_MS,
+  max: RATE_LIMIT.AUTH_MAX,
+  message: { msg: MESSAGES.AUTH.RATE_LIMIT },
 });
 
-// Production: serve built React app and SPA fallback
-if (IS_PRODUCTION) {
-  app.use(express.static(path.join(__dirname, "client", "build")));
-  app.get("*", (_req, res) => {
-    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+app.use(PATHS.API_BASE, apiLimiter);
+app.use(PATHS.API_AUTH, authLimiter);
+app.use(PATHS.API_USERS, authLimiter);
+
+app.get("/", (req, res) => res.json({ msg: MESSAGES.WELCOME }));
+
+app.use(PATHS.API_AUTH, require("./routes/auth"));
+app.use(PATHS.API_USERS, require("./routes/users"));
+app.use(PATHS.API_CONTACTS, require("./routes/contacts"));
+
+app.use("/api", (req, res) => {
+  return res.status(404).json({ error: MESSAGES.API_NOT_FOUND });
+});
+
+if (config.nodeEnv === "production") {
+  app.use(express.static(PATHS.CLIENT_BUILD));
+  app.get("*", (req, res) => {
+    return res.sendFile(path.resolve(__dirname, PATHS.CLIENT_BUILD, "index.html"));
   });
 }
 
-// Global error handler (must be last)
-app.use((err, _req, res, _next) => {
-  console.error("[server]", err.stack);
-  res.status(500).json({ error: MESSAGES.SERVER_ERROR });
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error(err.stack || err.message);
+  const status = err.status || 500;
+  const msg = status === 500 && config.nodeEnv === "production" ? MESSAGES.SERVER_ERROR : err.message;
+  res.status(status).json({ msg });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+app.listen(config.port, () => {
+  console.log(`Server started on port ${config.port}`);
 });

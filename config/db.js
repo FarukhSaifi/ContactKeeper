@@ -1,37 +1,19 @@
-/**
- * MongoDB connection setup.
- * Loads URI from env (MONGO_URI) or config, then connects; does not throw on failure.
- */
 const mongoose = require("mongoose");
-const config = require("config");
-const { DEFAULT_MONGO_URI } = require("./constants");
+const config = require("./index");
 
-/**
- * Resolves MongoDB connection URI: env first, then config, then default.
- * @returns {string} Connection URI
- */
-function getMongoUri() {
-  const envUri = process.env.MONGO_URI?.trim();
-  if (envUri) return envUri;
-  try {
-    return config.get("mongoURI");
-  } catch {
-    return DEFAULT_MONGO_URI;
+const connectDB = async () => {
+  if (!config.mongoUri) {
+    console.error("MongoDB connection failed: MONGO_URI is not configured");
+    process.exit(1);
   }
-}
 
-/**
- * Connects to MongoDB using getMongoUri().
- * Logs success or failure; does not throw so the app can start without DB.
- */
-async function connectDB() {
-  const uri = getMongoUri();
   try {
-    await mongoose.connect(uri);
-    console.log("[db] MongoDB connected");
+    await mongoose.connect(config.mongoUri);
+    console.log("MongoDB Connected...👍🏼");
   } catch (err) {
-    console.error("[db] Connection failed:", err.message);
+    console.error("MongoDB connection failed:", err.message);
+    process.exit(1);
   }
-}
+};
 
 module.exports = connectDB;
