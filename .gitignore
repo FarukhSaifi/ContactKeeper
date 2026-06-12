@@ -1,5 +1,12 @@
 node_modules
 
+# Lock files — regenerate locally with npm install
+package-lock.json
+client/package-lock.json
+
+# Local config fallback — use .env and config/default.example.json
+config/default.json
+
 .env
 .env.local
 .env.*.local
